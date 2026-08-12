@@ -8,6 +8,7 @@ public partial class Form1 : Form
     private readonly BatteryDisplaySettings _displaySettings = new();
     private readonly BatteryMonitor _batteryMonitor = new();
     private readonly NotifyIcon _notifyIcon = new();
+    private readonly ContextMenuStrip _trayMenu = new();
     private readonly System.Windows.Forms.Timer _blinkTimer = new();
     private System.Drawing.Icon? _currentTrayIcon;
     private BatteryStatus _lastStatus;
@@ -17,6 +18,10 @@ public partial class Form1 : Form
     {
         InitializeComponent();
 
+        _trayMenu.Items.Add("設定", null, (_, _) => OpenSettings());
+        _trayMenu.Items.Add(new ToolStripSeparator());
+        _trayMenu.Items.Add("終了", null, (_, _) => Close());
+        _notifyIcon.ContextMenuStrip = _trayMenu;
         _notifyIcon.Visible = true;
 
         _blinkTimer.Interval = _displaySettings.BlinkIntervalMilliseconds;
@@ -34,8 +39,19 @@ public partial class Form1 : Form
             _batteryMonitor.Dispose();
             _blinkTimer.Dispose();
             _notifyIcon.Dispose();
+            _trayMenu.Dispose();
             _currentTrayIcon?.Dispose();
         };
+    }
+
+    private void OpenSettings()
+    {
+        using var settingsForm = new SettingsForm(_displaySettings);
+        if (settingsForm.ShowDialog(this) == DialogResult.OK)
+        {
+            _blinkTimer.Interval = _displaySettings.BlinkIntervalMilliseconds;
+            UpdateStatus(_lastStatus);
+        }
     }
 
     private void UpdateStatus(BatteryStatus status)
