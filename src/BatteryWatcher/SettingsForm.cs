@@ -1,4 +1,5 @@
 using BatteryWatcher.Power;
+using BatteryWatcher.Startup;
 
 namespace BatteryWatcher;
 
@@ -38,6 +39,8 @@ public partial class SettingsForm : Form
 
         checkBoxBlinkEnabled.Checked = _settings.BlinkEnabled;
         numericBlinkInterval.Value = _settings.BlinkIntervalMilliseconds;
+
+        checkBoxStartWithWindows.Checked = StartupManager.IsEnabled();
     }
 
     private void PickColor(Button target)
@@ -64,5 +67,7 @@ public partial class SettingsForm : Form
 
         _settings.BlinkEnabled = checkBoxBlinkEnabled.Checked;
         _settings.BlinkIntervalMilliseconds = (int)numericBlinkInterval.Value;
+
+        StartupManager.SetEnabled(checkBoxStartWithWindows.Checked);
     }
 }
