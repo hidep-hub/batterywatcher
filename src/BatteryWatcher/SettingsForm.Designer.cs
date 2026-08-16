@@ -46,6 +46,8 @@ partial class SettingsForm
         this.labelBlinkInterval = new System.Windows.Forms.Label();
         this.numericBlinkInterval = new System.Windows.Forms.NumericUpDown();
 
+        this.checkBoxStartWithWindows = new System.Windows.Forms.CheckBox();
+
         this.buttonOk = new System.Windows.Forms.Button();
         this.buttonCancel = new System.Windows.Forms.Button();
 
@@ -183,15 +185,22 @@ partial class SettingsForm
         this.numericBlinkInterval.Increment = 50;
 
         //
+        // checkBoxStartWithWindows
+        //
+        this.checkBoxStartWithWindows.Text = "Windows起動時に自動的に開始する";
+        this.checkBoxStartWithWindows.AutoSize = true;
+        this.checkBoxStartWithWindows.Location = new System.Drawing.Point(12, 475);
+
+        //
         // buttonOk / buttonCancel
         //
         this.buttonOk.Text = "OK";
-        this.buttonOk.Location = new System.Drawing.Point(216, 475);
+        this.buttonOk.Location = new System.Drawing.Point(216, 510);
         this.buttonOk.Size = new System.Drawing.Size(80, 30);
         this.buttonOk.DialogResult = System.Windows.Forms.DialogResult.OK;
 
         this.buttonCancel.Text = "キャンセル";
-        this.buttonCancel.Location = new System.Drawing.Point(308, 475);
+        this.buttonCancel.Location = new System.Drawing.Point(308, 510);
         this.buttonCancel.Size = new System.Drawing.Size(80, 30);
         this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 
@@ -199,10 +208,11 @@ partial class SettingsForm
         // SettingsForm
         //
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(400, 517);
+        this.ClientSize = new System.Drawing.Size(400, 552);
         this.Controls.Add(this.groupBoxThreshold);
         this.Controls.Add(this.groupBoxColor);
         this.Controls.Add(this.groupBoxDisplay);
+        this.Controls.Add(this.checkBoxStartWithWindows);
         this.Controls.Add(this.buttonOk);
         this.Controls.Add(this.buttonCancel);
         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -252,6 +262,8 @@ partial class SettingsForm
     private System.Windows.Forms.CheckBox checkBoxBlinkEnabled;
     private System.Windows.Forms.Label labelBlinkInterval;
     private System.Windows.Forms.NumericUpDown numericBlinkInterval;
+
+    private System.Windows.Forms.CheckBox checkBoxStartWithWindows;
 
     private System.Windows.Forms.Button buttonOk;
     private System.Windows.Forms.Button buttonCancel;
