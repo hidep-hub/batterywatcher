@@ -18,6 +18,10 @@ public partial class Form1 : Form
     {
         InitializeComponent();
 
+        ShowInTaskbar = false;
+        WindowState = FormWindowState.Minimized;
+        Load += (_, _) => Hide();
+
         _trayMenu.Items.Add("設定", null, (_, _) => OpenSettings());
         _trayMenu.Items.Add(new ToolStripSeparator());
         _trayMenu.Items.Add("終了", null, (_, _) => Close());
