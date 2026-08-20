@@ -10,7 +10,14 @@
 
 ## インストール
 
-1. [Releasesページ](https://github.com/hidep-hub/batterywatcher/releases/latest) から最新版の `BatteryWatcher.exe`（自己完結の単一exe。.NETランタイムのインストール不要）をダウンロードし、任意のフォルダに配置する。
+1. [Releasesページ](https://github.com/hidep-hub/batterywatcher/releases/latest) から最新版のexeをダウンロードし、任意のフォルダに配置する。2種類を配布しているので、どちらか好みの方を選ぶ。
+
+   | ファイル名 | サイズ | 動作環境 |
+   |---|---|---|
+   | `BatteryWatcher.exe` | 約70MB | .NETランタイムのインストール不要（自己完結・単一exe） |
+   | `BatteryWatcher-fx.exe` | 数百KB | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) が別途必要（軽量・Framework-dependent） |
+
+   .NET 8 Desktop Runtimeが既に入っている（または他の.NET 8アプリで入れる予定がある）なら `BatteryWatcher-fx.exe`、余計なインストールを増やしたくないなら `BatteryWatcher.exe` を選ぶとよい。
    - 自分でビルドする場合は後述の「開発者向け情報」内の「配布用ビルド」を参照。
 2. `BatteryWatcher.exe` をダブルクリックで起動する。インストーラは無く、レジストリ登録もこの時点では発生しない。
    - 初回起動時に「Windows によって PC が保護されました」という Microsoft Defender SmartScreen の警告が表示される場合がある。これはコード署名証明書を付けていない個人配布アプリのため出るもので、「詳細情報」→「実行」をクリックすれば起動できる。
@@ -93,18 +100,41 @@ dotnet publish src/BatteryWatcher/BatteryWatcher.csproj -c Release
 
 生成された `BatteryWatcher.exe` を配布先のPCへコピーするだけで動作する（上記「インストール」参照）。
 
+### 配布用ビルド（Framework-dependent・軽量版）
+
+同じ `BatteryWatcher.csproj` から、MSBuildプロパティをコマンドラインで上書きすることで **.NET 8 Desktop Runtimeが前提の軽量な単一exe**（数百KB）も生成できる。csproj自体の変更は不要。
+
+```powershell
+dotnet publish src/BatteryWatcher/BatteryWatcher.csproj -c Release `
+  -p:SelfContained=false `
+  -p:PublishSingleFile=true `
+  -p:EnableCompressionInSingleFile=false
+```
+
+`EnableCompressionInSingleFile=false` が必要な理由: csprojでは自己完結版向けに単一ファイル圧縮を有効にしているが、圧縮はSelf-containedアプリでのみサポートされており、Framework-dependentでは無効化しないと publish が `NETSDK1176` エラーで失敗する。
+
+### 両方まとめてビルド（リリース用）
+
+上記2種類を毎回別々に叩くのは手間なので、両方を一括ビルドして `dist/` に出力するスクリプトを用意している。
+
+```powershell
+.\scripts\publish-release.ps1
+```
+
+実行すると `dist/BatteryWatcher.exe`（自己完結版）と `dist/BatteryWatcher-fx.exe`（Framework-dependent版）が生成される。`dist/` は `.gitignore` 対象なのでリポジトリにはコミットされない。
+
 ## リリース手順（GitHub Releases）
 
 現時点では手動リリース運用（CIによる自動ビルド・公開は未整備）。
 
-1. 上記の配布用ビルドコマンドで `BatteryWatcher.exe` を生成する。
+1. `.\scripts\publish-release.ps1` を実行し、`dist/BatteryWatcher.exe` と `dist/BatteryWatcher-fx.exe` の両方を生成する。
 2. `git tag vX.Y.Z` でバージョンタグを作成し `git push origin vX.Y.Z`。
-3. GitHubの [Releasesページ](https://github.com/hidep-hub/batterywatcher/releases) で「Draft a new release」から上記タグを選択し、生成した `BatteryWatcher.exe` を添付してリリースを公開する。
+3. GitHubの [Releasesページ](https://github.com/hidep-hub/batterywatcher/releases) で「Draft a new release」から上記タグを選択し、生成した2つのexeを両方添付してリリースを公開する。
 
 ## ビルド時の注意点
 
 - **`RuntimeIdentifier` が `win-x64` に固定**されている。ARM64版Windowsでネイティブ動作させたい場合は `.csproj` の `RuntimeIdentifier` を書き換える必要あり（win-x64のまま起動はできるがエミュレーション経由になる）。
-- `SelfContained=true` + `PublishSingleFile=true` + `IncludeNativeLibrariesForSelfExtract=true` の組み合わせなので、`publish` 後の実行ファイルは単体で動作するが、**サイズは数十MB規模になる**（.NETランタイム同梱のため）。`dotnet build` だけの出力（`bin/Debug` 等）は単一exeにはならず、別途DLL群が必要になる点に注意。
+- csprojのデフォルトは `SelfContained=true` + `PublishSingleFile=true` + `IncludeNativeLibrariesForSelfExtract=true` の組み合わせなので、`publish` 後の実行ファイルは単体で動作するが、**サイズは数十MB規模になる**（.NETランタイム同梱のため）。`dotnet build` だけの出力（`bin/Debug` 等）は単一exeにはならず、別途DLL群が必要になる点に注意。Framework-dependent版（`-p:SelfContained=false`）はこれらをコマンドライン引数で上書きして作るため、csproj自体はSelf-contained前提のままにしている。
 - `AllowUnsafeBlocks=true` かつ `Power/NativeMethods.cs` / `Icon/NativeMethods.cs` でP/Invoke（Win32 API直呼び）を行っている。ここを触る場合はアンマネージコードの扱いに注意。
 - `InvariantGlobalization=true` のため、カルチャ依存の書式（日付・数値のロケール別フォーマット等）はデフォルトで無効化されている。日本語UI文字列自体はハードコードなので問題ないが、将来ロケール依存処理を追加する場合は要検討。
 - タスクトレイ常駐アプリのため、`dotnet run` で起動すると通知領域にアイコンが出る。デバッグ時に多重起動すると複数アイコンが残るので、動作確認後は必ず終了（タスクトレイアイコン右クリック→終了、またはタスクマネージャー）してから再ビルドすること。
