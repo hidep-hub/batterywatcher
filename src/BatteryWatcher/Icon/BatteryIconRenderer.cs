@@ -8,7 +8,7 @@ public static class BatteryIconRenderer
 {
     private const int IconSize = 32;
     private const string FontName = "Segoe UI";
-    private const float PercentFontSize = 9f;
+    private const float PercentFontSize = 10f;
 
     public static System.Drawing.Icon Render(string text, Color textColor)
     {
@@ -21,7 +21,8 @@ public static class BatteryIconRenderer
             using var textPath = BuildTextPath(text);
             CenterPath(textPath);
 
-            DrawOutlinedPath(g, textPath, textColor);
+            using var textBrush = new SolidBrush(textColor);
+            g.FillPath(textBrush, textPath);
         }
 
         return ToIcon(bitmap);
@@ -37,8 +38,8 @@ public static class BatteryIconRenderer
 
         var fontSize = text.Length switch
         {
-            <= 2 => 25f,
-            3 => 20f,
+            <= 2 => 27f,
+            3 => 21f,
             _ => 14f,
         };
         return CreateTextPath(text, fontSize);
@@ -48,9 +49,9 @@ public static class BatteryIconRenderer
     {
         var numberFontSize = numberPart.Length switch
         {
-            1 => 25f,
-            2 => 22f,
-            _ => 14f,
+            1 => 27f,
+            2 => 24f,
+            _ => 16f,
         };
 
         using var numberFont = new Font(FontName, numberFontSize, FontStyle.Bold, GraphicsUnit.Pixel);
